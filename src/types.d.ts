@@ -1,3 +1,7 @@
+declare interface IStrKeysDict<T> {
+	[key: string]: T
+}
+
 
 
 declare interface IChecker {
@@ -10,5 +14,24 @@ declare interface ICell {
 	checker: IChecker | null
 }
 
-declare type BoardType = Array<Array<ICell>>
+declare interface ICoordinates {
+	row: number
+	column: number
+}
 
+declare interface IChainElement {
+	from: ICoordinates
+	to: ICoordinates
+}
+
+declare type CheckersMovesType = IStrKeysDict<IChainElement[][]>
+
+declare interface IScore {
+	player1: number
+	player2: number
+}
+
+declare interface ISelectedCheckerInfo {
+	checker: IChecker
+	coordinates: ICoordinates
+}

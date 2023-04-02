@@ -1,23 +1,40 @@
+import { getDeepCopy } from "../utils"
+
+
 const BOARD_SIZE = 8
+const CHECKERS_COUNT = 12
 
 class Checkers {
 	private _board: Array<Array<ICell>> = []
+	private _status: GameStatusType
+	private _currentPlayer = 2
+	private _currentMoves: CheckersMovesType = {}
+	private _score: IScore = { "1": 0, "2": 0 }
+	private _winner: number | null = null
 
-	constructor() {
+	constructor(startPlayer: number) {
 		this._generateBoard()
+
+		if (![ 1, 2 ].includes(startPlayer)) {
+			throw new Error("Invalid playerNumber value")
+		}
+
+		this._currentPlayer = startPlayer
+		this._calculatePlayerAvailableMoves()
+		this._status = "inProgress"
 	}
 
 	private _generateBoard() {
-		let checkersCount = 12
+		let checkersCount = CHECKERS_COUNT
 		let playerNumber = 1
 
 		for (let i = 0; i < BOARD_SIZE; i++) {
 			const row: Array<ICell> = []
 
-			let pawnIdx = (i + 1) % 2 // calculate start idx for checker based on current row
+			let checkerIdx = (i + 1) % 2 // calculate start idx for checker based on current row
 
 			for (let k = 0; k < BOARD_SIZE; k++) {
-				if (pawnIdx === k) {
+				if (checkerIdx === k) {
 					if (checkersCount > 0) {
 						checkersCount--
 
@@ -26,7 +43,7 @@ class Checkers {
 						row.push({ isPlayable: true, checker: null }) // set neutral position which can be occupied by players checker
 					}
 
-					pawnIdx += 2
+					checkerIdx += 2
 				} else {
 					row.push({ isPlayable: false, checker: null }) // unplayable position
 				}
@@ -36,7 +53,7 @@ class Checkers {
 
 			// set second player checkers
 			if (i === 4) {
-				checkersCount = 12
+				checkersCount = CHECKERS_COUNT
 				playerNumber = 2
 			}
 		}
@@ -59,23 +76,19 @@ class Checkers {
 		return false
 	}
 
-	private _getDeepCopy(value: any) {
-		return JSON.parse(JSON.stringify(value))
+	private _getCell(row: number, column: number) {
+		if (!this._isValidCoordinates(row, column)) {
+			throw new Error(`_getCell Invalid Coordinates row=${row}, column=${column}`)
+		}
+
+		return this._board[row][column]
 	}
 
-	private _getCellsOccupiedByPlayer(playerNumber: number) {
-		const playerOccupation: Array<{ rowIdx: number, cellIdx: number, checker: IChecker }> = []
-
-		this._board.forEach((row, rowIdx) => {
-			row.forEach((cell, cellIdx) => {
-				if (cell.isPlayable && cell.checker && cell.checker.playerNumber === playerNumber) {
-					playerOccupation.push({ rowIdx, cellIdx, checker: cell.checker })
-				}
-			})
-		})
-
-		return playerOccupation
+	private _composeMovesDictKey(playerNumber: number, row: number, column: number) {
+		return `${playerNumber}_${row}_${column}`
 	}
+
+
 
 	/*
 		enemy checker coords = { row: 4, column: 5 }
@@ -116,7 +129,7 @@ class Checkers {
 				if (!cell.checker) {
 					// allow one step move only if at current coordinates we have the same checker (!!! recursive func usage issue !!!)
 					if (currentCoordCell.checker === checker) {
-						availableMovesChains.push([ { from: coordinatesFrom, to: coordinates } ])
+						availableMovesChains.push([ { from: coordinatesFrom, to: coordinates, killed: null } ])
 					}
 				} else if (cell.checker.playerNumber !== playerNumber) {
 					enemyOccupation.push(coordinates)
@@ -142,7 +155,11 @@ class Checkers {
 				return lastChainElem.to.row === row && lastChainElem.to.column === column
 			})
 
-			const newChainElement = { from: coordinatesFrom, to: { row: nextRow, column: nextColumn } }
+			const newChainElement = {
+				from: coordinatesFrom,
+				to: { row: nextRow, column: nextColumn },
+				killed: enemyCoord
+			}
 
 			if (existingChains.length < 1) {
 				availableMovesChains.push([ newChainElement ]) // create new chain if there is no prev chain
@@ -150,7 +167,7 @@ class Checkers {
 				this._getMovesForChecker(checker, nextRow, nextColumn, availableMovesChains)
 			} else {
 				existingChains.forEach(chain => {
-					const chainCopy: Array<IChainElement> = this._getDeepCopy(chain)
+					const chainCopy: Array<IChainElement> = getDeepCopy(chain)
 
 					// extend existing chain and add to list as possible moveset
 					chainCopy.push(newChainElement)
@@ -164,39 +181,156 @@ class Checkers {
 		return availableMovesChains
 	}
 
-	/*
-		PUBLIC SECTION
-	*/
+	private _getCellsOccupiedByPlayer(playerNumber: number) {
+		const playerOccupation: Array<{ rowIdx: number, cellIdx: number, checker: IChecker }> = []
 
-	public get board() {
-		return this._getDeepCopy(this._board) // return copy of board state instead of reference to board
+		this._board.forEach((row, rowIdx) => {
+			row.forEach((cell, cellIdx) => {
+				if (cell.isPlayable && cell.checker && cell.checker.playerNumber === playerNumber) {
+					playerOccupation.push({ rowIdx, cellIdx, checker: cell.checker })
+				}
+			})
+		})
+
+		return playerOccupation
 	}
 
-	public getAllAvailableMovesForPlayer(playerNumber: number) {
-		const playerOccupation = this._getCellsOccupiedByPlayer(playerNumber)
+	private _setChecker(checker: IChecker | null, row: number, column: number) {
+		const cell = this._getCell(row, column)
+
+		if (!cell.isPlayable) {
+			throw new Error(`_setChecker: Not playable cell row=${row}, column=${column}`)
+		}
+
+		this._board[row][column].checker = checker
+	}
+
+	private _toggleCurrentPlayer() {
+		this._currentPlayer = this._currentPlayer === 1 ? 2 : 1
+		this._calculatePlayerAvailableMoves()
+	}
+
+	private _updateCurrentMoves(playerNumber: number, moves: CheckersMovesType) {
+		const keys = Object.keys(this._currentMoves)
+		const oldPlayerMoveskeys = keys.filter(key => parseInt(key[0]) === playerNumber)
+
+		oldPlayerMoveskeys.forEach(key => delete this._currentMoves[key]) // clear old moves
+
+		this._currentMoves = { ...this._currentMoves, ...moves } // set new moves
+	}
+
+	private _calculatePlayerAvailableMoves() {
+		const playerOccupation = this._getCellsOccupiedByPlayer(this._currentPlayer)
 		const movesByCheckers: CheckersMovesType = {}
 
 		playerOccupation.forEach(occ => {
 			const { checker, rowIdx, cellIdx } = occ
+			const key = this._composeMovesDictKey(checker.playerNumber, rowIdx, cellIdx)
 
-			movesByCheckers[`${checker.playerNumber}_${rowIdx}_${cellIdx}`] = this._getMovesForChecker(checker, rowIdx, cellIdx)
+			movesByCheckers[key] = this._getMovesForChecker(checker, rowIdx, cellIdx)
+		})
+
+		this._updateCurrentMoves(this._currentPlayer, movesByCheckers)
+	}
+
+	private _getSelectedMove(playerNumber: number, coordsFrom: ICoordinates, coordsTo: ICoordinates) {
+		const key = this._composeMovesDictKey(playerNumber, coordsFrom.row, coordsFrom.column)
+		const allCheckerMoves = this._currentMoves[key]
+
+		return allCheckerMoves.find(move => {
+			const moveFrom = move[0].from
+			const moveTo = move[move.length - 1].to
+
+			if (moveFrom.row === coordsFrom.row && moveFrom.column === coordsFrom.column) {
+				if (moveTo.row === coordsTo.row && moveTo.column === coordsTo.column) {
+					return true
+				}
+			}
+
+			return false
+		})
+	}
+
+	private _addScore() {
+		if (this._currentPlayer === 1) {
+			this._score["1"] += 1
+		} else if (this._currentPlayer === 2) {
+			this._score["2"] += 1
+		}
+	}
+
+	/*
+		PUBLIC SECTION
+	*/
+
+
+
+
+
+	public getAllAvailableMovesForPlayer(playerNumber: number) {
+		const movesByCheckers: CheckersMovesType = {}
+
+		if (playerNumber !== this._currentPlayer) return movesByCheckers
+
+		const keys = Object.keys(this._currentMoves)
+		const playerKeys = keys.filter(key => parseInt(key[0]) === playerNumber)
+
+		playerKeys.forEach(key => {
+			movesByCheckers[key] = getDeepCopy(this._currentMoves[key])
 		})
 
 		return movesByCheckers
 	}
 
-	public makeMove(moveChain: Array<IChainElement>) {
 
+	public makeMove(playerNumber: number, cellInfoFrom: ICellInfo, cellInfoTo: ICellInfo) {
+		if (playerNumber !== this._currentPlayer) return false
+
+		const moveChain = this._getSelectedMove(playerNumber, cellInfoFrom.coordinates, cellInfoTo.coordinates)
+
+		if (!moveChain) return false
+
+		const { from } = moveChain[0]
+		const { to } = moveChain[moveChain.length - 1]
+		const cell = this._board[from.row][from.column]
+
+		if (cell.checker?.playerNumber !== this._currentPlayer) {
+			throw new Error("You can not move opponent checker")
+		}
+
+		const checker = cell.checker
+
+		this._setChecker(checker, to.row, to.column)
+		this._setChecker(null, from.row, from.column)
+
+		moveChain.forEach(({ killed }) => {
+			if (killed) {
+				this._setChecker(null, killed.row, killed.column)
+
+				this._addScore()
+			}
+		})
+
+		this._winner = this._score[1] >= 12 ? 1 : this._score[2] >= 12 ? 2 : null
+		if (this._winner !== null) this._status = "finished"
+		else this._toggleCurrentPlayer()
+
+		return true
 	}
 
+	public takePlayerNumber(name: string) {
+		return name === "bot" ? 1 : 2
+	}
 
-	// public setBoardCell(checker: IChecker, row: number, column: number) {
-	// 	if (!this._isValidIndex(row)) throw new Error(`Invalid row value = ${row}. Must be between 0 and 7(included)`)
-	// 	if (!this._isValidIndex(column)) throw new Error(`Invalid column value = ${column}. Must be between 0 and 7(included)`)
-	// 	if (checker.figure !== null && ![ 0, 1, 2 ].includes(checker.figure)) throw new Error(`Invalid checker.figure = ${checker.figure}. Must be one of [ 0, 1, 2 ]`)
-
-	// 	this._board[row][column] = JSON.parse(JSON.stringify(checker))
-	// }
+	public getGameInfo() {
+		return {
+			board: getDeepCopy(this._board) as Array<Array<ICell>>,
+			score: getDeepCopy(this._score) as IScore,
+			currentPlayer: this._currentPlayer,
+			status: this._status,
+			winner: this._winner
+		}
+	}
 }
 
 export default Checkers

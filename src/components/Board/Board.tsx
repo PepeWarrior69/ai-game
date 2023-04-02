@@ -3,11 +3,11 @@ import Cell from '../Cell/Cell'
 
 interface Props {
 	board: Array<Array<ICell>>
-	setSelectedCheckerInfo: React.Dispatch<React.SetStateAction<ISelectedCheckerInfo | null>>
+	onClickCell: (info: ICellInfo) => void
 }
 
 
-const Board: React.FC<Props> = ({ board, setSelectedCheckerInfo }) => {
+const Board: React.FC<Props> = ({ board, onClickCell }) => {
 	console.count("render Board")
 
 	return (
@@ -21,9 +21,9 @@ const Board: React.FC<Props> = ({ board, setSelectedCheckerInfo }) => {
 								color={(rowIdx + colIdx) % 2 === 0 ? "#d7a05a" : "#a26018"}
 								checkerColor={!cell.isPlayable || !cell.checker ? null : cell.checker.playerNumber === 1 ? "red" : "black"}
 								onClick={() => {
-									if (!cell || !cell.checker || !cell.isPlayable) return
+									if (!cell.isPlayable) return
 
-									setSelectedCheckerInfo({ checker: cell.checker, coordinates: { row: rowIdx, column: colIdx } })
+									onClickCell({ checker: cell.checker, coordinates: { row: rowIdx, column: colIdx } })
 								}}
 							/>
 						)

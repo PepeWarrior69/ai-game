@@ -11,10 +11,10 @@ const Score: React.FC<Props> = ({ score }) => {
 	return (
 		<div className=''>
 			<div>
-				<label>Computer: {score.player1}</label>
+				<label>Computer: {score["1"]}</label>
 			</div>
 			<div>
-				<label>Player: {score.player2}</label>
+				<label>Player: {score["2"]}</label>
 			</div>
 		</div>
 	)

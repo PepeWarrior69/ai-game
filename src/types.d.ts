@@ -22,16 +22,18 @@ declare interface ICoordinates {
 declare interface IChainElement {
 	from: ICoordinates
 	to: ICoordinates
+	killed: ICoordinates | null
 }
 
 declare type CheckersMovesType = IStrKeysDict<IChainElement[][]>
 
 declare interface IScore {
-	player1: number
-	player2: number
+	"1": number
+	"2": number
 }
 
-declare interface ISelectedCheckerInfo {
-	checker: IChecker
+declare interface ICellInfo extends Pick<ICell, "checker"> {
 	coordinates: ICoordinates
 }
+
+declare type GameStatusType = "pause" | "inProgress" | "finished"

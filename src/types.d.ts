@@ -37,3 +37,5 @@ declare interface ICellInfo extends Pick<ICell, "checker"> {
 }
 
 declare type GameStatusType = "pause" | "inProgress" | "finished" | null
+
+declare type BoardType = Array<Array<ICell>>

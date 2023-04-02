@@ -3,11 +3,13 @@ import React, { useRef } from 'react'
 import Header from './components/Header/Header'
 import Checkers from './Models/Checkers'
 import CheckersGame from './Features/CheckersGame'
+import Bot from './Models/Bot'
 
 
 const App: React.FC = () => {
 	console.count("render App")
 	const checkersGame = useRef(new Checkers())
+	const checkersBot = useRef(new Bot(checkersGame.current))
 
 	return (
 		<div className='flex justify-center h-screen'>
@@ -15,7 +17,10 @@ const App: React.FC = () => {
 				<Header/>
 
 				<div className='flex mt-10'>
-					<CheckersGame checkersClient={checkersGame.current} />
+					<CheckersGame
+						checkersClient={checkersGame.current}
+						checkersBot={checkersBot.current}
+					/>
 				</div>
 			</div>
 		</div>

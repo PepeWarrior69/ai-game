@@ -6,9 +6,9 @@ import Node from "./Node"
 
 
 
-class Tree {
-	private _root: Node | null
-	private _nodes: Array<Node> = []
+class Tree<T> {
+	private _root: Node<T> | null = null
+	private _nodes: Array<Node<T>> = []
 
 	constructor() {
 		this._root = null
@@ -24,7 +24,7 @@ class Tree {
 
 	/* SETTERS */
 
-	public set root(node: Node | null) {
+	public set root(node: Node<T> | null) {
 		if (!node) return
 
 		this._root = node

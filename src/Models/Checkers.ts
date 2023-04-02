@@ -5,25 +5,17 @@ const BOARD_SIZE = 8
 const CHECKERS_COUNT = 12
 
 class Checkers {
-	private _board: Array<Array<ICell>> = []
+	private _board: BoardType = []
 	private _status: GameStatusType = null
 	private _currentPlayer = 2
 	private _currentMoves: CheckersMovesType = {}
 	private _score: IScore = { "1": 0, "2": 0 }
 	private _winner: number | null = null
+	private _gameListeners: IStrKeysDict<() => void> = {}
 
 	constructor() {
 		this._generateBoard()
 		this._calculatePlayerAvailableMoves()
-	}
-
-	public start(startPlayerNumber: number) {
-		if (![ 1, 2 ].includes(startPlayerNumber)) {
-			throw new Error("Invalid playerNumber value")
-		}
-
-		this._currentPlayer = startPlayerNumber
-		this._status = "inProgress"
 	}
 
 	private _generateBoard() {
@@ -59,6 +51,10 @@ class Checkers {
 				playerNumber = 2
 			}
 		}
+	}
+
+	private _isValidPlayerNumber(num: number) {
+		return [ 1, 2 ].includes(num)
 	}
 
 	private _isValidIndex(idx: number) {
@@ -261,6 +257,11 @@ class Checkers {
 		}
 	}
 
+	// all listeners will now that something is updatedin game and they need to refresh game data
+	private _triggerListeners() {
+		Object.values(this._gameListeners).forEach(listener => listener())
+	}
+
 	/*
 		PUBLIC SECTION
 	*/
@@ -268,8 +269,15 @@ class Checkers {
 
 	public set status(st: GameStatusType) {
 		this._status = st
+		this._triggerListeners()
 	}
 
+
+	public setGameListener(playerNumber: number, listener: () => void) {
+		if (!this._isValidPlayerNumber(playerNumber)) return false
+
+		this._gameListeners[playerNumber] = listener
+	}
 
 	public getAllAvailableMovesForPlayer(playerNumber: number) {
 		const movesByCheckers: CheckersMovesType = {}
@@ -319,6 +327,8 @@ class Checkers {
 		if (this._winner !== null) this._status = "finished"
 		else this._toggleCurrentPlayer()
 
+		this._triggerListeners()
+
 		return true
 	}
 
@@ -328,12 +338,27 @@ class Checkers {
 
 	public getGameInfo() {
 		return {
-			board: getDeepCopy(this._board) as Array<Array<ICell>>,
+			board: getDeepCopy(this._board) as BoardType,
 			score: getDeepCopy(this._score) as IScore,
 			currentPlayer: this._currentPlayer,
 			status: this._status,
 			winner: this._winner
 		}
+	}
+
+	public start(startPlayerNumber: number) {
+		if (!this._isValidPlayerNumber(startPlayerNumber)) {
+			throw new Error("Invalid playerNumber value")
+		}
+
+		this._currentPlayer = startPlayerNumber
+		this._status = "inProgress"
+
+		this._triggerListeners()
+	}
+
+	public getCell(row: number, column: number) {
+		return getDeepCopy(this._board[row][column])
 	}
 }
 

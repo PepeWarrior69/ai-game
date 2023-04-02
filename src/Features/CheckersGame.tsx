@@ -5,12 +5,14 @@ import Board from '../components/Board/Board'
 import Score from '../components/Score/Score'
 import PlayerToggle from '../components/PlayerToggle/PlayerToggle'
 import GameControlButton from '../components/GameControlButton/GameControlButton'
+import Bot from '../Models/Bot'
 
 interface Props {
 	checkersClient: Checkers
+	checkersBot: Bot
 }
 
-const CheckersGame: React.FC<Props> = ({ checkersClient }) => {
+const CheckersGame: React.FC<Props> = ({ checkersClient, checkersBot }) => {
 	console.count("render CheckersGame")
 
 	const [ board, setBoard ] = useState<ICell[][]>([])

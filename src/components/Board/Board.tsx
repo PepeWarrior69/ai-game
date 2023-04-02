@@ -2,7 +2,7 @@ import React from 'react'
 import Cell from '../Cell/Cell'
 
 interface Props {
-	board: Array<Array<ICell>>
+	board: BoardType
 	onClickCell: (info: ICellInfo) => void
 }
 

@@ -6,21 +6,23 @@ const CHECKERS_COUNT = 12
 
 class Checkers {
 	private _board: Array<Array<ICell>> = []
-	private _status: GameStatusType
+	private _status: GameStatusType = null
 	private _currentPlayer = 2
 	private _currentMoves: CheckersMovesType = {}
 	private _score: IScore = { "1": 0, "2": 0 }
 	private _winner: number | null = null
 
-	constructor(startPlayer: number) {
+	constructor() {
 		this._generateBoard()
+		this._calculatePlayerAvailableMoves()
+	}
 
-		if (![ 1, 2 ].includes(startPlayer)) {
+	public start(startPlayerNumber: number) {
+		if (![ 1, 2 ].includes(startPlayerNumber)) {
 			throw new Error("Invalid playerNumber value")
 		}
 
-		this._currentPlayer = startPlayer
-		this._calculatePlayerAvailableMoves()
+		this._currentPlayer = startPlayerNumber
 		this._status = "inProgress"
 	}
 
@@ -264,7 +266,9 @@ class Checkers {
 	*/
 
 
-
+	public set status(st: GameStatusType) {
+		this._status = st
+	}
 
 
 	public getAllAvailableMovesForPlayer(playerNumber: number) {
@@ -284,7 +288,7 @@ class Checkers {
 
 
 	public makeMove(playerNumber: number, cellInfoFrom: ICellInfo, cellInfoTo: ICellInfo) {
-		if (playerNumber !== this._currentPlayer) return false
+		if (playerNumber !== this._currentPlayer || this._status !== "inProgress") return false
 
 		const moveChain = this._getSelectedMove(playerNumber, cellInfoFrom.coordinates, cellInfoTo.coordinates)
 

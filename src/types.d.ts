@@ -36,4 +36,4 @@ declare interface ICellInfo extends Pick<ICell, "checker"> {
 	coordinates: ICoordinates
 }
 
-declare type GameStatusType = "pause" | "inProgress" | "finished"
+declare type GameStatusType = "pause" | "inProgress" | "finished" | null

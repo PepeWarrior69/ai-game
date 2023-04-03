@@ -7,7 +7,6 @@ import Bot from './Models/Bot'
 
 
 const App: React.FC = () => {
-	console.count("render App")
 	const checkersGame = useRef(new Checkers())
 	const checkersBot = useRef(new Bot(checkersGame.current))
 

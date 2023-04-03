@@ -77,14 +77,8 @@ class Bot {
 	}
 
 	private _gameListener() {
-		console.count("START BOT _gameListener")
-
-		console.log("bot listen")
-		console.log("bot this = ", this)
 		this._refreshGameInfo()
 		this._makeMove()
-
-		console.count("END BOT _gameListener")
 	}
 
 	private _generateGameTree() {

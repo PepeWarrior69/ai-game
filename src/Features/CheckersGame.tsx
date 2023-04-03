@@ -13,8 +13,6 @@ interface Props {
 }
 
 const CheckersGame: React.FC<Props> = ({ checkersClient, checkersBot }) => {
-	console.count("render CheckersGame")
-
 	const [ board, setBoard ] = useState<ICell[][]>([])
 	const [ myPlayerNumber ] = useState(checkersClient.takePlayerNumber("Player"))
 	const [ gameStatus, setGameStatus ] = useState<GameStatusType>("pause")
@@ -67,6 +65,8 @@ const CheckersGame: React.FC<Props> = ({ checkersClient, checkersBot }) => {
 			checkersClient.status = "pause"
 		} else if (gameStatus === "pause") {
 			checkersClient.status = "inProgress"
+		} else if (gameStatus === "finished") {
+			checkersClient.resetGame(currentPlayer)
 		}
 
 		refreshGameInfo()

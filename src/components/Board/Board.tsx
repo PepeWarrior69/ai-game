@@ -8,8 +8,6 @@ interface Props {
 
 
 const Board: React.FC<Props> = ({ board, onClickCell }) => {
-	console.count("render Board")
-
 	return (
 		<div>
 			<div className='grid grid-cols-8'>
@@ -20,6 +18,7 @@ const Board: React.FC<Props> = ({ board, onClickCell }) => {
 								key={colIdx}
 								color={(rowIdx + colIdx) % 2 === 0 ? "#d7a05a" : "#a26018"}
 								checkerColor={!cell.isPlayable || !cell.checker ? null : cell.checker.playerNumber === 1 ? "red" : "black"}
+								checker={cell.checker}
 								onClick={() => {
 									if (!cell.isPlayable) return
 

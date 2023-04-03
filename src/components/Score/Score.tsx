@@ -6,8 +6,6 @@ interface Props {
 
 
 const Score: React.FC<Props> = ({ score }) => {
-	console.count("render Score")
-
 	return (
 		<div className=''>
 			<div>

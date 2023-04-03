@@ -102,7 +102,7 @@ class Checkers {
 		king can go in any direction
 	*/
 
-	private _getMovesForChecker(checker: IChecker, row: number, column: number, availableMovesChains: Array<Array<IChainElement>> = []) {
+	private _getMovesForChecker(checker: IChecker, row: number, column: number, availableMovesChains: Array<Array<IChainElement>> = [], count = 0) {
 		const enemyOccupation: Array<ICoordinates> = []
 
 		const currentCoordCell = this._board[row][column]
@@ -144,7 +144,7 @@ class Checkers {
 			}
 
 			if (this._board[nextRow][nextColumn].checker) {
-				return // sjip if next cell is occupied
+				return // skip if next cell is occupied
 			}
 
 			const existingChains = availableMovesChains.filter(ch => {
@@ -165,6 +165,12 @@ class Checkers {
 				this._getMovesForChecker(checker, nextRow, nextColumn, availableMovesChains)
 			} else {
 				existingChains.forEach(chain => {
+					// handle case when checker king can move in loop -> <- -> <-
+					const prevChainElem = chain[chain.length - 1]
+					if (prevChainElem.from.row === newChainElement.to.row && prevChainElem.from.column === newChainElement.to.column) {
+						return
+					}
+
 					const chainCopy: Array<IChainElement> = getDeepCopy(chain)
 
 					// extend existing chain and add to list as possible moveset
@@ -235,6 +241,8 @@ class Checkers {
 		const key = this._composeMovesDictKey(playerNumber, coordsFrom.row, coordsFrom.column)
 		const allCheckerMoves = this._currentMoves[key]
 
+		if (!allCheckerMoves) return null
+
 		return allCheckerMoves.find(move => {
 			const moveFrom = move[0].from
 			const moveTo = move[move.length - 1].to
@@ -302,8 +310,8 @@ class Checkers {
 
 		if (!moveChain) return false
 
-		const { from } = moveChain[0]
-		const { to } = moveChain[moveChain.length - 1]
+		const { from } = moveChain[0] // first chain element
+		const { to } = moveChain[moveChain.length - 1] // last chain element
 		const cell = this._board[from.row][from.column]
 
 		if (cell.checker?.playerNumber !== this._currentPlayer) {
@@ -311,6 +319,10 @@ class Checkers {
 		}
 
 		const checker = cell.checker
+		// need to handle king moves
+		if ((playerNumber === 1 && to.row === 7) || (playerNumber === 2 && to.row === 0)) {
+			checker.type = "king"
+		}
 
 		this._setChecker(checker, to.row, to.column)
 		this._setChecker(null, from.row, from.column)
@@ -355,6 +367,17 @@ class Checkers {
 		this._status = "inProgress"
 
 		this._triggerListeners()
+	}
+
+	public resetGame(startPlayerNumber: number) {
+		this._board = []
+		this._generateBoard()
+		this._score[1] = 0
+		this._score[2] = 0
+		this._currentMoves = {}
+		this._winner = null
+
+		this.start(startPlayerNumber)
 	}
 
 	public getCell(row: number, column: number) {

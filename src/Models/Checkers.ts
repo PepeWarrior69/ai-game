@@ -15,7 +15,6 @@ class Checkers {
 
 	constructor() {
 		this._generateBoard()
-		this._calculatePlayerAvailableMoves()
 	}
 
 	private _generateBoard() {
@@ -72,6 +71,23 @@ class Checkers {
 		if (checker.playerNumber === 2 && from.row > to.row) return true
 
 		return false
+	}
+
+	private _isOutOfMoves() {
+		const playerMovesCount: IStrKeysDict<number> = {
+			"1": 0,
+			"2": 0
+		}
+
+		const keys = Object.keys(this._currentMoves)
+
+		keys.forEach(key => {
+			const playerNumber = key[0]
+
+			playerMovesCount[playerNumber] += this._currentMoves[key].length
+		})
+
+		return playerMovesCount["1"] === 0 || playerMovesCount["2"] === 0
 	}
 
 	private _getCell(row: number, column: number) {
@@ -339,6 +355,7 @@ class Checkers {
 		if (this._winner !== null) this._status = "finished"
 		else this._toggleCurrentPlayer()
 
+		if (this._isOutOfMoves()) this._status = "finished"
 		this._triggerListeners()
 
 		return true
@@ -365,6 +382,9 @@ class Checkers {
 
 		this._currentPlayer = startPlayerNumber
 		this._status = "inProgress"
+		this._calculatePlayerAvailableMoves()
+
+		console.log("start startPlayerNumber = ", startPlayerNumber)
 
 		this._triggerListeners()
 	}
@@ -376,8 +396,7 @@ class Checkers {
 		this._score[2] = 0
 		this._currentMoves = {}
 		this._winner = null
-
-		this.start(startPlayerNumber)
+		this.status = null
 	}
 
 	public getCell(row: number, column: number) {

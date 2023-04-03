@@ -14,8 +14,9 @@ interface Props {
 
 const CheckersGame: React.FC<Props> = ({ checkersClient, checkersBot }) => {
 	const [ board, setBoard ] = useState<ICell[][]>([])
-	const [ myPlayerNumber ] = useState(checkersClient.takePlayerNumber("Player"))
+	const [ myPlayerNumber ] = useState(checkersClient.takePlayerNumber("player"))
 	const [ gameStatus, setGameStatus ] = useState<GameStatusType>("pause")
+	const [ firstMove, setFirstMove ] = useState<"bot" | "player">("player")
 	const [ currentPlayer, setCurrentPlayer ] = useState(myPlayerNumber)
 	const [ score, setScore ] = useState<IScore>({ "1": 0, "2": 0 })
 	const [ selectedCheckerInfo, setSelectedCheckerInfo ] = useState<ICellInfo | null>(null)
@@ -60,7 +61,7 @@ const CheckersGame: React.FC<Props> = ({ checkersClient, checkersBot }) => {
 
 	const onControlBtnClick = useCallback(() => {
 		if (!gameStatus) {
-			checkersClient.start(currentPlayer)
+			checkersClient.start(firstMove === "player" ? myPlayerNumber : checkersClient.takePlayerNumber("bot"))
 		} else if (gameStatus === "inProgress") {
 			checkersClient.status = "pause"
 		} else if (gameStatus === "pause") {
@@ -70,10 +71,11 @@ const CheckersGame: React.FC<Props> = ({ checkersClient, checkersBot }) => {
 		}
 
 		refreshGameInfo()
-	}, [checkersClient, gameStatus, currentPlayer, refreshGameInfo])
+	}, [checkersClient, gameStatus, currentPlayer, firstMove, myPlayerNumber, refreshGameInfo])
 
 	const onSelectFirstPlayer = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-		setCurrentPlayer(() => e.target.checked ? 1 : 2)
+		setFirstMove(() => e.target.checked ? "bot" : "player")
+		console.log("set ", e.target.checked ? "bot" : "player")
 	}, [])
 
 	return (
@@ -88,7 +90,7 @@ const CheckersGame: React.FC<Props> = ({ checkersClient, checkersBot }) => {
 
 				<div className='mt-5'>
 					<PlayerToggle
-						disabled={!!gameStatus}
+						disabled={!!gameStatus && gameStatus !== "finished"}
 						onCheck={onSelectFirstPlayer}
 					/>
 				</div>

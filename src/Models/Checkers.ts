@@ -73,6 +73,25 @@ class Checkers {
 		return false
 	}
 
+	private _isHitMovementChainValid(chain: Array<IChainElement>, newChainElement: IChainElement) {
+		let isValid = true
+
+		chain.forEach(el => {
+			if (el.killed && newChainElement.killed) {
+				if (el.killed.row === newChainElement.killed.row && el.killed.column === newChainElement.killed.column) {
+					isValid = false
+				}
+			}
+
+			// already been there
+			if (el.to.row === newChainElement.to.row && el.to.column === newChainElement.to.column) {
+				isValid = false
+			}
+		})
+
+		return isValid
+	}
+
 	private _isOutOfMoves() {
 		const playerMovesCount: IStrKeysDict<number> = {
 			"1": 0,
@@ -120,6 +139,17 @@ class Checkers {
 
 	private _getMovesForChecker(checker: IChecker, row: number, column: number, availableMovesChains: Array<Array<IChainElement>> = [], count = 0) {
 		const enemyOccupation: Array<ICoordinates> = []
+
+		// case when king can move in loop between 4 enemy checkers
+		for (let i = 0; i < availableMovesChains.length; i++) {
+			for (let k = 0; k < availableMovesChains[i].length; k++) {
+				const el = availableMovesChains[i][k]
+
+				if (el.from.row === row && el.from.column === column) {
+					return availableMovesChains
+				}
+			}
+		}
 
 		const currentCoordCell = this._board[row][column]
 		const playerNumber = checker.playerNumber
@@ -169,7 +199,7 @@ class Checkers {
 				return lastChainElem.to.row === row && lastChainElem.to.column === column
 			})
 
-			const newChainElement = {
+			const newChainElement: IChainElement = {
 				from: coordinatesFrom,
 				to: { row: nextRow, column: nextColumn },
 				killed: enemyCoord
@@ -181,19 +211,27 @@ class Checkers {
 				this._getMovesForChecker(checker, nextRow, nextColumn, availableMovesChains)
 			} else {
 				existingChains.forEach(chain => {
-					// handle case when checker king can move in loop -> <- -> <-
-					const prevChainElem = chain[chain.length - 1]
-					if (prevChainElem.from.row === newChainElement.to.row && prevChainElem.from.column === newChainElement.to.column) {
-						return
+					// // handle case when checker king can move in loop -> <- -> <-
+					// const prevChainElem = chain[chain.length - 1]
+					// if (prevChainElem.from.row === newChainElement.to.row && prevChainElem.from.column === newChainElement.to.column) {
+					// 	return
+					// }
+
+					// // handle case when king can do a multikill and return to his initial position before first kill
+					// const firstChainElem = chain[0]
+					// if (firstChainElem.from.row === newChainElement.to.row && firstChainElem.from.column === newChainElement.to.column) {
+					// 	return
+					// }
+
+					if (this._isHitMovementChainValid(chain, newChainElement)) {
+						const chainCopy: Array<IChainElement> = getDeepCopy(chain)
+
+						// extend existing chain and add to list as possible moveset
+						chainCopy.push(newChainElement)
+						availableMovesChains.push(chainCopy)
+
+						this._getMovesForChecker(checker, nextRow, nextColumn, availableMovesChains)
 					}
-
-					const chainCopy: Array<IChainElement> = getDeepCopy(chain)
-
-					// extend existing chain and add to list as possible moveset
-					chainCopy.push(newChainElement)
-					availableMovesChains.push(chainCopy)
-
-					this._getMovesForChecker(checker, nextRow, nextColumn, availableMovesChains)
 				})
 			}
 		})

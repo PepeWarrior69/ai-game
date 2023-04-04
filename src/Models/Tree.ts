@@ -31,9 +31,6 @@ class Tree<T> {
 		this._nodes.push(node)
 	}
 
-
-	/* PUBLIC SECTION */
-
 	public addNode() {
 
 	}

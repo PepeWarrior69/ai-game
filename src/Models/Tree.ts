@@ -7,11 +7,14 @@ import Node from "./Node"
 
 
 class Tree<T> {
-	private _root: Node<T> | null = null
+	private _root: Node<T>
 	private _nodes: Array<Node<T>> = []
+	private _maxLevel: number
+	private _count = 0
 
-	constructor() {
-		this._root = null
+	constructor(initialState: T, maxlevel: number) {
+		this._root = new Node(initialState, [], [], 0)
+		this._maxLevel = maxlevel
 	}
 
 
@@ -24,15 +27,23 @@ class Tree<T> {
 
 	/* SETTERS */
 
-	public set root(node: Node<T> | null) {
-		if (!node) return
+	// public set root(node: T | null) {
+	// 	if (!node) return
 
-		this._root = node
-		this._nodes.push(node)
+	// 	this._root = new Node(node, [], [], 0)
+	// 	this._nodes.push(this._root)
+	// }
+
+	public addNode(state: T, prev: T, next: T, level: number) {
+		if (level > this._maxLevel) return false
+
+
+
+		return true
 	}
 
-	public addNode() {
-
+	public count() {
+		this._count++
 	}
 }
 

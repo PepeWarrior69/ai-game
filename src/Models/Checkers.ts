@@ -13,8 +13,14 @@ class Checkers {
 	private _winner: number | null = null
 	private _gameListeners: IStrKeysDict<() => void> = {}
 
-	constructor() {
-		this._generateBoard()
+	constructor(initialInfo?: IGameInfo) {
+		if (initialInfo) {
+			this._board = initialInfo.board
+			this._status = initialInfo.status
+			this._score = initialInfo.score
+		} else {
+			this._generateBoard()
+		}
 	}
 
 	private _generateBoard() {
@@ -403,7 +409,7 @@ class Checkers {
 		return name === "bot" ? 1 : 2
 	}
 
-	public getGameInfo() {
+	public getGameInfo(): IGameInfo {
 		return {
 			board: getDeepCopy(this._board) as BoardType,
 			score: getDeepCopy(this._score) as IScore,
@@ -422,8 +428,6 @@ class Checkers {
 		this._status = "inProgress"
 		this._calculatePlayerAvailableMoves()
 
-		console.log("start startPlayerNumber = ", startPlayerNumber)
-
 		this._triggerListeners()
 	}
 
@@ -437,7 +441,7 @@ class Checkers {
 		this.status = null
 	}
 
-	public getCell(row: number, column: number) {
+	public getCell(row: number, column: number): ICell {
 		return getDeepCopy(this._board[row][column])
 	}
 }

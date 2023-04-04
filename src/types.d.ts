@@ -39,3 +39,19 @@ declare interface ICellInfo extends Pick<ICell, "checker"> {
 declare type GameStatusType = "pause" | "inProgress" | "finished" | null
 
 declare type BoardType = Array<Array<ICell>>
+
+declare interface IGameState {
+	board: BoardType
+	score: IScore
+	playerNumber: number
+	cellInfoFrom: ICellInfo | null
+	cellInfoTo: ICellInfo | null
+}
+
+declare interface IGameInfo {
+	board: BoardType,
+	score: IScore,
+	currentPlayer: number,
+	status: ISTatus,
+	winner: number | null
+}

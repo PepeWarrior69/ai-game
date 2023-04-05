@@ -1,14 +1,14 @@
 
 
-class Node<T> {
+class Node<T, M> {
 	private _state: T
-	private _prev: Array<Node<T>>
-	private _next: Array<Node<T>>
+	private _prev: Array<M>
+	private _next: Array<M>
 	private _level: number
 	private _hValue: number | null = null
 
 
-	constructor(state: T, prev: Array<Node<T>>, next: Array<Node<T>>, level: number) {
+	constructor(state: T, prev: Array<M>, next: Array<M>, level: number) {
 		this._state = state
 		this._prev = prev
 		this._next = next
@@ -17,7 +17,7 @@ class Node<T> {
 
 	/* GETTERS */
 
-	public get values() {
+	public get state() {
 		return this._state
 	}
 
@@ -39,15 +39,15 @@ class Node<T> {
 
 	/* SETTERS */
 
-	public set values(board: T) {
+	public set state(board: T) {
 		this._state = board
 	}
 
-	public set prev(nodes: Array<Node<T>>) {
+	public set prev(nodes: Array<M>) {
 		this._prev = nodes
 	}
 
-	public set next(nodes: Array<Node<T>>) {
+	public set next(nodes: Array<M>) {
 		this._next = nodes
 	}
 

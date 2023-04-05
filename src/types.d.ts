@@ -40,13 +40,6 @@ declare type GameStatusType = "pause" | "inProgress" | "finished" | null
 
 declare type BoardType = Array<Array<ICell>>
 
-declare interface IGameState {
-	board: BoardType
-	score: IScore
-	playerNumber: number
-	cellInfoFrom: ICellInfo | null
-	cellInfoTo: ICellInfo | null
-}
 
 declare interface IGameInfo {
 	board: BoardType,
@@ -54,4 +47,18 @@ declare interface IGameInfo {
 	currentPlayer: number,
 	status: ISTatus,
 	winner: number | null
+}
+
+
+declare interface IMove {
+	from: ICellInfo | null
+	to: ICellInfo | null
+	prev: any
+	next: any
+}
+
+declare interface IGameState {
+	board: BoardType
+	score: IScore
+	nextMovesOwner: number
 }

@@ -6,14 +6,15 @@ import Node from "./Node"
 
 
 
-class Tree<T> {
-	private _root: Node<T>
-	private _nodes: Array<Node<T>> = []
+class Tree<T, M> {
+	private _root: Node<T, M>
+	private _nodes: IStrKeysDict<Array<Node<T, M>>> = {}
 	private _maxLevel: number
 	private _count = 0
 
 	constructor(initialState: T, maxlevel: number) {
 		this._root = new Node(initialState, [], [], 0)
+		this.addNode(this._root, 0)
 		this._maxLevel = maxlevel
 	}
 
@@ -22,6 +23,10 @@ class Tree<T> {
 
 	public get root() {
 		return this._root
+	}
+
+	public get nodes() {
+		return this._nodes
 	}
 
 
@@ -34,12 +39,10 @@ class Tree<T> {
 	// 	this._nodes.push(this._root)
 	// }
 
-	public addNode(state: T, prev: T, next: T, level: number) {
-		if (level > this._maxLevel) return false
+	public addNode(node: Node<T, M>, level: number) {
+		if (!this._nodes[level]) this._nodes[level] = []
 
-
-
-		return true
+		this._nodes[level].push(node)
 	}
 
 	public count() {

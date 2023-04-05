@@ -15,9 +15,9 @@ class Checkers {
 
 	constructor(initialInfo?: IGameInfo) {
 		if (initialInfo) {
-			this._board = initialInfo.board
+			this._board = getDeepCopy(initialInfo.board)
+			this._score = getDeepCopy(initialInfo.score)
 			this._status = initialInfo.status
-			this._score = initialInfo.score
 		} else {
 			this._generateBoard()
 		}

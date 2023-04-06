@@ -35,7 +35,6 @@ const CheckersGame: React.FC<Props> = ({ checkersClient, checkersBot }) => {
 
 	useEffect(() => {
 		refreshGameInfo()
-		console.log("initial set game info")
 	}, [refreshGameInfo])
 
 	useEffect(() => {

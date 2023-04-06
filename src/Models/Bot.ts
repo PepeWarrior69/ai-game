@@ -1,10 +1,9 @@
-import { getDeepCopy } from "../utils";
 import Checkers from "./Checkers";
 import Node from "./Node";
 import Tree from "./Tree";
 
 
-const MAX_LEVEL = 4
+const MAX_LEVEL = 5
 
 class Bot {
 	private _tree: Tree<IGameState, IMove>
@@ -39,12 +38,6 @@ class Bot {
 		this._tree = new Tree(initialState, MAX_LEVEL)
 		this._localGameClient = new Checkers()
 		this._localGameClient.start(gameInfo.currentPlayer)
-
-		console.time(`tree generation at level: ${MAX_LEVEL}`)
-		this._generateGameTree()
-		console.timeEnd(`tree generation at level: ${MAX_LEVEL}`)
-		console.log("tree = ", this._tree)
-
 		this._playerNumber = checkersClient.takePlayerNumber("bot")
 
 		this._gameListener = this._gameListener.bind(this)
@@ -63,40 +56,10 @@ class Bot {
 		return gameInfo
 	}
 
-	private _makeMove() {
-		const allMoves = this._checkersClient.getAllAvailableMovesForPlayer(this._playerNumber)
-
-		const checkerMoves = Object.values(allMoves).find(moves => moves.length > 0)
-
-		if (!checkerMoves) return
-
-		const move = checkerMoves[0]
-		const from = move[0].from
-		const to = move[move.length - 1].to
-
-		const cellFrom: ICellInfo = {
-			checker: this._checkersClient.getCell(from.row, from.column).checker,
-			coordinates: {
-				row: from.row,
-				column: from.column
-			}
-		}
-
-		const cellTo: ICellInfo = {
-			checker: this._checkersClient.getCell(to.row, to.column).checker,
-			coordinates: {
-				row: to.row,
-				column: to.column
-			}
-		}
-
-		this._checkersClient.makeMove(this._playerNumber, cellFrom, cellTo)
-	}
-
 	private _gameListener() {
 		const gameInfo = this._refreshGameInfo()
 
-		if (gameInfo.currentPlayer === this._playerNumber) {
+		if (gameInfo.currentPlayer === this._playerNumber && !["finished", "pause", null].includes(this._status)) {
 			this._localGameClient = new Checkers(gameInfo)
 			this._localGameClient.start(gameInfo.currentPlayer)
 			const initialState: IGameState = {
@@ -107,14 +70,9 @@ class Bot {
 			this._tree = new Tree(initialState, MAX_LEVEL)
 
 			this._generateGameTree()
-
-			console.log("tre  ===== ", this._tree)
-
-			this._makeMove()
+			this._minimax()
+			this._makeMoveBasedOnTree()
 		}
-		// const node = this._makeMoveBasedOnTree()
-
-		// console.log("node = ", node)
 	}
 
 	private _generateGameTree(client = this._localGameClient, level = 1, prevNode = this._tree.root) {
@@ -150,15 +108,7 @@ class Bot {
 					}
 				}
 
-				if (!clientCopy.makeMove(currentPlayer, cellFrom, cellTo)) {
-					console.error("invalid move idk")
-					console.log("client deep copy = ", getDeepCopy(clientCopy))
-					console.log("currentPlayer = ", currentPlayer)
-					console.log("cellFrom = ", cellFrom)
-					console.log("cellTo = ", cellTo)
-					console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-					return
-				}
+				if (!clientCopy.makeMove(currentPlayer, cellFrom, cellTo)) return
 
 				const info = clientCopy.getGameInfo()
 
@@ -222,11 +172,72 @@ class Bot {
 		return true
 	}
 
-	// private _makeMoveBasedOnTree(node = this._tree.root): Node<IGameState, IMove> {
-	// 	if (node.level === 2) return node
+	private _getHValue(score: IScore) {
+		let diff = Math.abs(score[1] - score[2])
 
-	// 	return this._makeMoveBasedOnTree(node.next[0].next)
-	// }
+		if (diff === 0) return diff
+
+		if (score[1] > score[2]) {
+			return diff
+		}
+
+		return -diff
+	}
+
+	private _minimax(node = this._tree.root, depth = MAX_LEVEL - 1, isMaximizer = true) {
+		if (depth === 0 || Object.values(node.state.score).includes(12)) {
+			const hValue = this._getHValue(node.state.score)
+
+			node.hValue = hValue
+
+			return node.hValue
+		}
+
+		if (isMaximizer) {
+			let maxHValue = -Infinity
+
+			node.next.forEach(move => {
+				const hValue = this._minimax(move.next, depth - 1, false)
+
+				maxHValue = Math.max(maxHValue, hValue)
+			})
+
+			node.hValue = maxHValue
+
+			return maxHValue
+		} else {
+			let minHValue = +Infinity
+
+			node.next.forEach(move => {
+				const hValue = this._minimax(move.next, depth - 1, true)
+
+				minHValue = Math.min(minHValue, hValue)
+			})
+
+			node.hValue = minHValue
+
+			return minHValue
+		}
+	}
+
+	private _makeMoveBasedOnTree() {
+		const root = this._tree.root
+		const maxHValue = root.hValue
+
+		const match = root.next.find(move => move.next.hValue === maxHValue)
+
+		if (match && match.from && match.to) {
+			if (!this._checkersClient.makeMove(this._playerNumber, match.from, match.to)) {
+				console.error("Invalid move in _makeMoveBasedOnTree")
+				console.log("match = ", match)
+				console.log("_playerNumber = ", this._playerNumber)
+				console.log("=================================================")
+			}
+		} else {
+			console.error("_makeMoveBasedOnTree: NO MATCH")
+			console.log("match = ", match)
+		}
+	}
 
 }
 

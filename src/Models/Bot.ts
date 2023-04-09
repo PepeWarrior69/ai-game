@@ -231,13 +231,9 @@ class Bot {
 		if (match && match.from && match.to) {
 			if (!this._checkersClient.makeMove(this._playerNumber, match.from, match.to)) {
 				console.error("Invalid move in _makeMoveBasedOnTree")
-				console.log("match = ", match)
-				console.log("_playerNumber = ", this._playerNumber)
-				console.log("=================================================")
 			}
 		} else {
 			console.error("_makeMoveBasedOnTree: NO MATCH")
-			console.log("match = ", match)
 		}
 	}
 

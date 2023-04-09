@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "main": "public/electron.js",
-  "homepage": "./",
+  "homepage": "https://PepeWarrior69.github.io/checkers",
   "description": "Checkers game",
   "author": "alex.babulis217@gmail.com",
   "dependencies": {
@@ -32,7 +32,9 @@
     "dev": "concurrently -k \"npm run react:start\" \"npm:electron\"",
     "electron": "wait-on tcp:3000 && electron .",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+	"predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -60,6 +62,7 @@
     "@electron-forge/maker-zip": "^6.1.0",
     "concurrently": "^7.6.0",
     "electron": "^23.2.0",
+    "gh-pages": "^5.0.0",
     "tailwindcss": "^3.3.0",
     "wait-on": "^7.0.1"
   }

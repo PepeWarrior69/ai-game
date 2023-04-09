@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/checkers/static/css/main.bf20302f.css",
+    "main.js": "/checkers/static/js/main.5038b648.js",
+    "static/media/crown.svg": "/checkers/static/media/crown.0c57f2803b3b64801a6763628a1e2c71.svg",
+    "index.html": "/checkers/index.html",
+    "main.bf20302f.css.map": "/checkers/static/css/main.bf20302f.css.map",
+    "main.5038b648.js.map": "/checkers/static/js/main.5038b648.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.bf20302f.css",
+    "static/js/main.5038b648.js"
+  ]
+}

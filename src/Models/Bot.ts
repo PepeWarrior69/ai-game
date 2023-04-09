@@ -69,7 +69,9 @@ class Bot {
 			}
 			this._tree = new Tree(initialState, MAX_LEVEL)
 
+			console.time("tree generation")
 			this._generateGameTree()
+			console.timeEnd("tree generation")
 			this._minimax()
 			this._makeMoveBasedOnTree()
 		}
@@ -143,7 +145,7 @@ class Bot {
 		if (!this._tree.nodes[level]) return null
 
 		const match = this._tree.nodes[level].find(el => {
-			return this._isSameBoards(el.state.board, state.board)
+			return state.score[1] === el.state.score[1] && state.score[2] === el.state.score[2] && this._isSameBoards(el.state.board, state.board)
 		})
 
 		return match

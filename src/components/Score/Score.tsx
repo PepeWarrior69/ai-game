@@ -7,12 +7,12 @@ interface Props {
 
 const Score: React.FC<Props> = ({ score }) => {
 	return (
-		<div className=''>
+		<div>
 			<div>
-				<label>Computer: {score["1"]}</label>
+				<label>Computer: <b>{score["1"]}</b></label>
 			</div>
 			<div>
-				<label>Player: {score["2"]}</label>
+				<label>Player: <b>{score["2"]}</b></label>
 			</div>
 		</div>
 	)

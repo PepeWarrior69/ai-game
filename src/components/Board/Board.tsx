@@ -3,57 +3,51 @@ import Cell from '../Cell/Cell'
 
 interface Props {
 	board: BoardType
+	selectedCheckerInfo: ICellInfo | null
+	selectedCheckerMoves: Array<ICoordinates>
 	onClickCell: (info: ICellInfo) => void
 }
 
 
-const Board: React.FC<Props> = ({ board, onClickCell }) => {
+const Board: React.FC<Props> = ({
+	board,
+	selectedCheckerInfo,
+	selectedCheckerMoves,
+	onClickCell
+}) => {
 	return (
-		<div>
-			<div className='grid grid-cols-8'>
-				{board.map((row, rowIdx) => {
-					return row.map((cell, colIdx) => {
-						return (
-							<Cell
-								key={colIdx}
-								color={(rowIdx + colIdx) % 2 === 0 ? "#d7a05a" : "#a26018"}
-								checkerColor={!cell.isPlayable || !cell.checker ? null : cell.checker.playerNumber === 1 ? "red" : "black"}
-								checker={cell.checker}
-								onClick={() => {
-									if (!cell.isPlayable) return
+		<div className='flex flex-wrap max-w-4xl'>
+			{board.map((row, rowIdx) => {
+				return (
+					<div
+						key={rowIdx}
+						className='flex'
+					>
+						{row.map((cell, cellIdx) => {
+							const isSelected = !!selectedCheckerInfo && selectedCheckerInfo.coordinates.row === rowIdx && selectedCheckerInfo.coordinates.column === cellIdx
+							const isMarked = selectedCheckerMoves.findIndex(el => el.row === rowIdx && el.column === cellIdx) > -1
 
-									onClickCell({ checker: cell.checker, coordinates: { row: rowIdx, column: colIdx } })
-								}}
-							/>
-						)
-					})
-				})}
-			</div>
+							return (
+								<Cell
+									key={cellIdx}
+									color={(rowIdx + cellIdx) % 2 === 0 ? "#d7a05a" : "#a26018"}
+									checkerColor={!cell.isPlayable || !cell.checker ? null : cell.checker.playerNumber === 1 ? "red" : "black"}
+									hasKingIcon={cell.checker?.type === "king"}
+									isSelected={isSelected}
+									isMarked={isMarked}
+									onClick={() => {
+										if (!cell.isPlayable) return
+
+										onClickCell({ checker: cell.checker, coordinates: { row: rowIdx, column: cellIdx } })
+									}}
+								/>
+							)
+						})}
+					</div>
+				)
+			})}
 		</div>
 	)
-
-	// return (
-	// 	<div className='flex justify-center flex-wrap'>
-	// 		{board.map((row, rowIdx) => {
-	// 			return (
-	// 				<div
-	// 					key={rowIdx}
-	// 					className='flex'
-	// 				>
-	// 					{row.map((cell, cellIdx) => {
-	// 						return (
-	// 							<Cell
-	// 								key={cellIdx}
-	// 								color={(rowIdx + cellIdx) % 2 === 0 ? "#d7a05a" : "#a26018"}
-	// 								checkerColor={!cell.isPlayable || !cell.checker ? null : cell.checker.playerNumber === 1 ? "red" : "black"}
-	// 							/>
-	// 						)
-	// 					})}
-	// 				</div>
-	// 			)
-	// 		})}
-	// 	</div>
-	// )
 }
 
 export default React.memo(Board)
